@@ -52,12 +52,16 @@ module Spree
       true
     end
 
+    # Order#avalara_capture reloads line items, which drops the promotion adjustments
+    # Solidus 4.8 keeps in memory until the order is saved.
     def get_avalara_response(order)
       Rails.cache.fetch(cache_key(order), time_to_idle: 5.minutes) do
+        order.create_avalara_transaction if order.avalara_transaction.nil?
+
         if order.can_commit?
-          order.avalara_capture_finalize
+          order.avalara_transaction.commit_avatax_final('SalesInvoice')
         else
-          order.avalara_capture
+          order.avalara_transaction.commit_avatax('SalesOrder')
         end
       end
     end

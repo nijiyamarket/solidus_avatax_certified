@@ -161,7 +161,7 @@ module SolidusAvataxCertified
     end
 
     def discounted?(line_item)
-      line_item.adjustments.promotion.eligible.any? ||
+      line_item.adjustments.any? { |adjustment| adjustment.promotion? && !adjustment.marked_for_destruction? } ||
         order.adjustments.promotion.eligible.any? ||
         order.adjustments.where('amount < 0').where(source: nil).eligible.any?
     end
